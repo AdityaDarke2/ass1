@@ -1,108 +1,58 @@
-class ProductNode:
-    def __init__(self, pid, pname, qty):
-        self.product_id = pid
-        self.name = pname
-        self.quantity = qty
+class HashNode:
+    def __init__(self, key, value):
+        self.key = key
+        self.value = value
         self.next = None
 
-
-class WareHouse:
+class HashTable:
     def __init__(self, size=10):
         self.size = size
         self.table = [None] * self.size
 
-    def hash_function(self, pid):
-        return pid % self.size
+    def hash_func(self, key):
+        return key % self.size
 
-    def add_product(self, pid, pname, qty):
-        index = self.hash_function(pid)
-        current = self.table[index]
-
-        while current is not None:
-            if current.product_id == pid:
-                print(f"\nProduct ID {pid} already exists")
+    def insert(self, key, value):
+        idx = self.hash_func(key)
+        curr = self.table[idx]
+        while curr is not None:                     # Check duplicate keys
+            if curr.key == key:
+                curr.value = value                  # Update existing
                 return
-            current = current.next
+            curr = curr.next
+        new_node = HashNode(key, value)             # Insert at head of chain
+        new_node.next = self.table[idx]
+        self.table[idx] = new_node
 
-        new_node = ProductNode(pid, pname, qty)
-        new_node.next = self.table[index]
-        self.table[index] = new_node
+    def search(self, key):
+        idx = self.hash_func(key)
+        curr = self.table[idx]
+        while curr is not None:
+            if curr.key == key:
+                return curr.value
+            curr = curr.next
+        return None
 
-    def search_product(self, pid):
-        index = self.hash_function(pid)
-        current = self.table[index]
-
-        while current is not None:
-            if current.product_id == pid:
-                print(f"\n{index}. {current.name} with ID {current.product_id} has {current.quantity} items in stock")
-                return
-            current = current.next
-
-        print("\nProduct not Found")
-
-    def delete_product(self, pid):
-        index = self.hash_function(pid)
-        current = self.table[index]
-        previous = None
-
-        while current is not None:
-            if current.product_id == pid:
-                if previous is None:
-                    self.table[index] = current.next
+    def delete(self, key):
+        idx = self.hash_func(key)
+        curr = self.table[idx]
+        prev = None
+        while curr is not None:
+            if curr.key == key:
+                if prev is None:
+                    self.table[idx] = curr.next
                 else:
-                    previous.next = current.next
+                    prev.next = curr.next
+                return True
+            prev = curr
+            curr = curr.next
+        return False
 
-                print(f"\nDeleted Product with ID {pid}.")
-                return
-
-            previous = current
-            current = current.next
-
-        print("\nProduct not Found")
-
-    def display_table(self):
-        print("\nWarehouse Hash Table Status")
-        empty = True
-
-        for index in range(self.size):
-            print(f"Index {index}: ", end="")
-            current = self.table[index]
-
-            if current is None:
-                print("[Empty]")
-            else:
-                empty = False
-                result = ""
-
-                while current is not None:
-                    result += f"[ID: {current.product_id} | {current.name} | Qty: {current.quantity}] -> "
-                    current = current.next
-
-                result += "None"
-                print(result)
-
-        if empty:
-            print("\nHash table is completely empty.")
-
-
-if __name__ == "__main__":
-    w = WareHouse(10)
-
-    w.add_product(101, "Keyboard", 25)
-    w.add_product(111, "Mouse", 40)
-    w.add_product(121, "Monitor", 12)
-    w.add_product(102, "USB Cable", 60)
-    w.add_product(112, "Webcam", 18)
-    w.add_product(131, "Headphones", 30)
-
-    w.display_table()
-
-    w.search_product(111)
-    w.search_product(150)
-
-    w.delete_product(111)
-
-    w.display_table()
-
-    w.add_product(101, "Keyboard", 25)
-    w.delete_product(999)
+    def display(self):
+        for i in range(self.size):
+            print(f"Bucket {i}:", end=" ")
+            curr = self.table[i]
+            while curr:
+                print(f"[{curr.key}: {curr.value}]", end=" -> ")
+                curr = curr.next
+            print("None")
